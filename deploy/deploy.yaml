@@ -1,0 +1,210 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: genius-scheduler-clusterrole
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - events
+    verbs:
+      - create
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - delete
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - bindings
+      - pods/binding
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - pods/status
+    verbs:
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - replicationcontrollers
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - replicasets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+      - persistentvolumes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "storage.k8s.io"
+    resources:
+      - storageclasses
+      - csinodes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - create
+      - get
+      - list
+      - update
+  - apiGroups:
+      - "events.k8s.io"
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+      - update
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: genius-scheduler-sa
+  namespace: kube-system
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: genius-scheduler-clusterrolebinding
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: genius-scheduler-clusterrole
+subjects:
+  - kind: ServiceAccount
+    name: genius-scheduler-sa
+    namespace: kube-system
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-config
+  namespace: kube-system
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta1
+    kind: KubeSchedulerConfiguration
+    schedulerName: genius-scheduler
+    leaderElection:
+      leaderElect: true
+      lockObjectName: genius-scheduler
+      lockObjectNamespace: kube-system
+    plugins:
+      queueSort:
+        enabled:
+        - name: "genius"
+      preFilter:
+        enabled:
+        - name: "genius"
+      filter:
+        enabled:
+        - name: "genius"
+      score:
+        enabled:
+        - name: "genius"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genius-scheduler
+  namespace: kube-system
+  labels:
+    component: genius-scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: genius-scheduler
+  template:
+    metadata:
+      labels:
+        component: genius-scheduler
+    spec:
+      serviceAccountName: genius-scheduler-sa
+      priorityClassName: system-cluster-critical
+      volumes:
+        - name: scheduler-config
+          configMap:
+            name: scheduler-config
+      containers:
+        - name: scheduler-ctrl
+          image: genius:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - genius
+            - --config=/etc/kubernetes/scheduler-config.yaml
+            - --v=3
+          resources:
+            requests:
+              cpu: "50m"
+          volumeMounts:
+            - name: scheduler-config
+              mountPath: /etc/kubernetes
