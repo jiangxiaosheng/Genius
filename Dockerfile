@@ -1,3 +1,5 @@
+# Due to networking issues, the commented lines below won't work correctly.
+
 #FROM golang:1.14 as build
 #
 #WORKDIR /go/src/github.com/genius/
@@ -6,7 +8,12 @@
 #
 #RUN go build -o /go/bin/genius cmd/main.go
 
-FROM ubuntu:18.04
+FROM golang:1.14
+
+WORKDIR /go/src/genius
+
+# for debugging purpose
+COPY . .
 
 COPY bin/genius /usr/bin/genius
 

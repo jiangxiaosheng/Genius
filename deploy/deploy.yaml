@@ -152,24 +152,25 @@ data:
   scheduler-config.yaml: |
     apiVersion: kubescheduler.config.k8s.io/v1beta1
     kind: KubeSchedulerConfiguration
-    schedulerName: genius-scheduler
     leaderElection:
       leaderElect: true
-      lockObjectName: genius-scheduler
-      lockObjectNamespace: kube-system
-    plugins:
-      queueSort:
-        enabled:
-        - name: "genius"
-      preFilter:
-        enabled:
-        - name: "genius"
-      filter:
-        enabled:
-        - name: "genius"
-      score:
-        enabled:
-        - name: "genius"
+      leaseDuration: 15s
+      renewDeadline: 10s
+      resourceLock: leases
+      resourceName: genius-scheduler
+      resourceNamespace: kube-system
+    profiles:
+      - plugins:
+          preFilter:
+            enabled:
+            - name: "genius"
+          filter:
+            enabled:
+            - name: "genius"
+          score:
+            enabled:
+            - name: "genius"
+        schedulerName: genius-scheduler
 ---
 apiVersion: apps/v1
 kind: Deployment

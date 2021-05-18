@@ -18,13 +18,12 @@ import (
 
 var (
 	Scheme   = "http"
-	PromHost = "0.0.0.1"
+	PromHost = "222.201.144.187" // fixme: it should be discovered in runtime by k8s client sdk
 	PromPort = 30090
 )
 
 const (
 	baseQueryFilterInner = `__name__=~"observerward_.*"`
-	baseQueryFilter      = `{__name__=~"observerward_.*"}`
 	k8sNodeNameLabel     = "kubernetes_node"
 	idLabel              = "id"
 )
@@ -44,7 +43,7 @@ func NewMonitor(scheme, host string, port int) (*Monitor, error) {
 		Address: address,
 	})
 	if err != nil {
-		klog.Exitf("Creating Prometheus Client Error: %v", err)
+		klog.Exitf("creating prometheus client error: %v", err)
 	}
 
 	return &Monitor{
@@ -125,51 +124,6 @@ func (m *Monitor) UpdateMetrics() (*types.GPUMetricsWithProm, error) {
 			metricsWithProm[nodename].GPUs = append(metricsWithProm[nodename].GPUs, gpuSnapshot)
 		}
 	}
-	//cardsCount := len(values) / types.MetricsTypesCount
-	//for _, value := range values {
-	//	t := types.ExtractMetricTypeFromProm(value)
-	//	nodename := types.ExtractNodeNameFromProm(value)
-	//
-	//}
-	//for i := 0; i < cardsCount; i++ {
-	//	firstRecord := values[i*types.MetricsTypesCount]
-	//	nodeName := types.ExtractNodeNameFromProm(firstRecord)
-	//	gpuID := types.ExtractIDFromProm(firstRecord)
-	//	uuid := types.ExtractUUIDFromProm(firstRecord)
-	//	if gpuMetricsWithProm[nodeName] == nil {
-	//		gpuMetricsWithProm[nodeName] = &scraper.GPUMetrics{}
-	//	}
-	//	newCard := &scraper.MetricsSnapshotPerGPU{}
-	//	newCard.StaticAttr.ID = gpuID
-	//	newCard.StaticAttr.UUID = uuid
-	//	for idx := 0; idx < types.MetricsTypesCount; idx++ {
-	//		tp := types.ExtractMetricTypeFromProm(values[i*types.MetricsTypesCount+idx])
-	//		klog.Info(values[i*types.MetricsTypesCount+idx])
-	//		val := types.ExtractValueFromProm(values[i*types.MetricsTypesCount+idx])
-	//		klog.Infof("%v %v", tp, val)
-	//		switch tp {
-	//		case types.GPUDecoderUtilization:
-	//			newCard.DecoderUtilization = uint(val)
-	//		case types.GPUEncoderUtilization:
-	//			newCard.EncoderUtilization = uint(val)
-	//		case types.GPUMemoryUtilization:
-	//			newCard.MemoryUtilization = uint(val)
-	//		case types.GPUPowerUsage:
-	//			newCard.Power = uint(val)
-	//		case types.GPUUsedGlobalMemory:
-	//			newCard.UsedGlobalMemory = val
-	//		case types.GPUMemorySize:
-	//			newCard.StaticAttr.MemorySizeMB = val
-	//		case types.GPUMultiprocessorCount:
-	//			newCard.StaticAttr.MultiprocessorCount = uint32(val)
-	//		case types.GPUSharedDecoderCount:
-	//			newCard.StaticAttr.SharedDecoderCount = uint32(val)
-	//		case types.GPUSharedEncoderCount:
-	//			newCard.StaticAttr.SharedEncoderCount = uint32(val)
-	//		}
-	//	}
-	//	gpuMetricsWithProm[nodeName].GPUs = append(gpuMetricsWithProm[nodeName].GPUs, newCard)
-	//}
 	return &metricsWithProm, nil
 }
 
@@ -181,11 +135,11 @@ func (m *Monitor) queryLabelValues(labelname string, matchers []string) (model.L
 	values, warning, err := v1api.LabelValues(ctx, labelname, matchers, time.Now().Add(-time.Hour), time.Now())
 
 	for _, w := range warning {
-		klog.Warningf("Warning on Querying Label Values: %v\n", w)
+		klog.Warningf("warning on querying label values: %v\n", w)
 	}
 
 	if err != nil {
-		klog.Errorf("Error on Querying Label Value: %v\n", err)
+		klog.Errorf("error on querying label value: %v\n", err)
 		return nil, err
 	}
 	return values, nil
@@ -212,11 +166,11 @@ func (m *Monitor) query(qString string) (string, error) {
 
 	result, warnings, err := v1api.Query(ctx, qString, time.Now())
 	if err != nil {
-		klog.Errorf("Querying Prometheus Error: %v", err)
+		klog.Errorf("querying prometheus error: %v", err)
 		return "", err
 	}
 	if len(warnings) > 0 {
-		klog.Warningf("Warnings: %v", warnings)
+		klog.Warningf("warnings: %v", warnings)
 	}
 	return value2String(&result), nil
 }

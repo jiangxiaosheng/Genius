@@ -32,7 +32,7 @@ var (
 type Genius struct {
 	handle  framework.Handle
 	monitor *monitor.Monitor
-	*sync.RWMutex
+	sync.RWMutex
 }
 
 func New(obj runtime.Object, handle framework.Handle) (framework.Plugin, error) {
@@ -63,6 +63,7 @@ func (g *Genius) PreFilter(ctx context.Context, state *framework.CycleState, pod
 		klog.Errorf("updating metrics for scheduling error: %v", err)
 		return framework.NewStatus(framework.Error)
 	}
+	logMetricsInfo(metrics)
 
 	state.Lock()
 	defer state.Unlock()
@@ -133,4 +134,26 @@ func (g *Genius) NormalizeScore(ctx context.Context, state *framework.CycleState
 
 func (g *Genius) ScoreExtensions() framework.ScoreExtensions {
 	return nil
+}
+
+func logMetricsInfo(metrics *types.GPUMetricsWithProm) {
+	klog.V(3).Infof("updated GPU metrics info:\n")
+	for k, v := range *metrics {
+		klog.V(3).Infof("nodename: %v", k)
+		for _, g := range v.GPUs {
+			klog.V(3).Infof(" id: %v", g.StaticAttr.ID)
+			klog.V(3).Infof(" uuid: %v", g.StaticAttr.UUID)
+			klog.V(3).Infof(" model: %v", g.StaticAttr.Model)
+			klog.V(3).Infof(" decoder utilization: %v", g.DecoderUtilization)
+			klog.V(3).Infof(" encoder utilization: %v", g.EncoderUtilization)
+			klog.V(3).Infof(" memory utilization: %v", g.MemoryUtilization)
+			klog.V(3).Infof(" power usage: %v", g.Power)
+			klog.V(3).Infof(" used global memory: %v", g.UsedGlobalMemory)
+			klog.V(3).Infof(" free global memory: %v", g.FreeGlobalMemory)
+			klog.V(3).Infof(" memory size in MB: %v", g.StaticAttr.MemorySizeMB)
+			klog.V(3).Infof(" multiprocessor count: %v", g.StaticAttr.MultiprocessorCount)
+			klog.V(3).Infof(" shared decoder count: %v", g.StaticAttr.SharedDecoderCount)
+			klog.V(3).Infof(" shared encoder count: %v", g.StaticAttr.SharedEncoderCount)
+		}
+	}
 }

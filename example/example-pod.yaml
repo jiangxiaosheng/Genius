@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example-pod
+  labels:
+    genius/gpu-number: "3"
+spec:
+  restartPolicy: OnFailure
+  schedulerName: genius-scheduler
+  containers:
+    - name: cuda-vector-add
+      image: "nvidia/samples:vectoradd-cuda11.1"
+      imagePullPolicy: IfNotPresent
