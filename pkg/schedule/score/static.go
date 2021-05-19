@@ -23,9 +23,9 @@ func computeStaticScore(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clust
 		smn.sharedDecoderCount += uint64(gpu.StaticAttr.SharedDecoderCount)
 		smn.sharedEncoderCount += uint64(gpu.StaticAttr.SharedEncoderCount)
 	}
-	return (scoreAgainstMemory(smn, aggregatedMetrics) + scoreAgainstMultiprocessor(smn, aggregatedMetrics) +
+	return scoreAgainstMemory(smn, aggregatedMetrics) + scoreAgainstMultiprocessor(smn, aggregatedMetrics) +
 		scoreAgainstSharedDecoder(smn, aggregatedMetrics) + scoreAgainstSharedEncoder(smn, aggregatedMetrics) +
-		scoreAgainstBandwidth(smn, aggregatedMetrics)) * 100
+		scoreAgainstBandwidth(smn, aggregatedMetrics)
 }
 
 func scoreAgainstMemory(metricsOnNode *staticMetricsOnNode, aggregatedMetrics *clusterAggregatedMetrics) float32 {

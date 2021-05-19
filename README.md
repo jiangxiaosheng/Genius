@@ -103,6 +103,3 @@ We can further check the log of Genius to make sure of what happened on earth:
 - The monitoring module should run in the stand-alone mode, since it is not wise to update the GPU metrics only when there is an incoming new scheduling request. The communication cost from Genius to Prometheus HTTP API is expensive, and it will cause low performance. A better practice is to put the metrics info into a cache.
 - The host address of Prometheus server is hard-coded. It should be discovered by k8s go-client library dynamically.
 - The label value does not support characters like `_`and `.`, and there are other limits, which is inconvenient for GPU models. The workaround is to establish a model map.
-# Acknowledgement
-
-South China University of Technology, Big Data and Cloud Computing Lab

@@ -160,17 +160,19 @@ data:
       resourceName: genius-scheduler
       resourceNamespace: kube-system
     profiles:
-      - plugins:
-          preFilter:
-            enabled:
-            - name: "genius"
-          filter:
-            enabled:
-            - name: "genius"
-          score:
-            enabled:
-            - name: "genius"
-        schedulerName: genius-scheduler
+    - schedulerName: genius-scheduler
+      plugins:
+        preFilter:
+          enabled:
+          - name: "genius"
+        filter:
+          enabled:
+          - name: "genius"
+        score:
+          enabled:
+          - name: "genius"
+            weight: 300
+
 ---
 apiVersion: apps/v1
 kind: Deployment

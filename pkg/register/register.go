@@ -1,7 +1,7 @@
 package register
 
 import (
-	genius "genius/pkg/schedule"
+	genius "github.com/genius/pkg/schedule"
 	"github.com/spf13/cobra"
 	"k8s.io/kubernetes/cmd/kube-scheduler/app"
 )

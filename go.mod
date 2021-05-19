@@ -3,24 +3,26 @@ module github.com/jiangxiaosheng/genius
 go 1.15
 
 require (
+	github.com/genius v0.0.0-00010101000000-000000000000
 	github.com/google/go-cmp v0.5.5 // indirect
 	github.com/google/uuid v1.2.0 // indirect
+	github.com/observerward v0.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/common v0.18.0
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.7.0 // indirect
 	k8s.io/api v0.20.0
 	k8s.io/apimachinery v0.20.0
+	k8s.io/client-go v0.20.0
 	k8s.io/component-base v0.20.0
-	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.4.0
 	k8s.io/kubernetes v1.20.0
 )
 
 replace (
+	github.com/genius => ./
 	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.4.1
-	github.com/observerward => github.com/jiangxiaosheng/ObserverWard v0.0.0-20210517163954-b1c297c59325
-	github.com/genius => github.com/jiangxiaosheng/Genius v0.0.0-20210518072855-6911d999f3f3
+	github.com/observerward => github.com/jiangxiaosheng/observerward v0.0.0-20210518094512-339e6973fa36
 	k8s.io/api => k8s.io/api v0.20.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.20.0
 	k8s.io/apimachinery => k8s.io/apimachinery v0.20.0

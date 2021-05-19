@@ -3,7 +3,8 @@ kind: Pod
 metadata:
   name: example-pod
   labels:
-    genius/gpu-number: "3"
+    genius/gpu-number: "1"
+    genius/gpu-model: "1070.Ti"
 spec:
   restartPolicy: OnFailure
   schedulerName: genius-scheduler

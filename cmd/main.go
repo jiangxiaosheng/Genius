@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"genius/pkg/register"
+	"github.com/genius/pkg/register"
 	"k8s.io/component-base/logs"
 	"math/rand"
 	"os"

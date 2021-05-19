@@ -10,16 +10,16 @@ const (
 )
 
 func computeDynamicScore(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clusterAggregatedMetrics) float32 {
-	return (scoreAgainstUsedMemory(gpuMetrics) + scoreAgainstPower(gpuMetrics, aggregatedMetrics) +
-		scoreAgainstDecoderUtilization(gpuMetrics) + scoreAgainstEncoderUtilization(gpuMetrics)) * 100
+	return scoreAgainstFreeMemory(gpuMetrics, aggregatedMetrics) + scoreAgainstPower(gpuMetrics, aggregatedMetrics) +
+		scoreAgainstDecoderUtilization(gpuMetrics, aggregatedMetrics) + scoreAgainstEncoderUtilization(gpuMetrics, aggregatedMetrics)
 }
 
-func scoreAgainstUsedMemory(gpuMetrics *scraper.GPUMetrics) float32 {
+func scoreAgainstFreeMemory(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clusterAggregatedMetrics) float32 {
 	score := float32(0)
 	for _, gpu := range gpuMetrics.GPUs {
-		score += float32(gpu.StaticAttr.MemorySizeMB-gpu.UsedGlobalMemory) / float32(gpu.StaticAttr.MemorySizeMB)
+		score += float32(gpu.FreeGlobalMemory) / float32(aggregatedMetrics.dynamic.freeGlobalMemory) * float32(aggregatedMetrics.cardsCount)
 	}
-	return score * usedMemoryWeight
+	return score * usedMemoryWeight / float32(len(gpuMetrics.GPUs))
 }
 
 func scoreAgainstPower(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clusterAggregatedMetrics) float32 {
@@ -27,21 +27,23 @@ func scoreAgainstPower(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *cluste
 	for _, gpu := range gpuMetrics.GPUs {
 		score += float32(gpu.Power) / float32(aggregatedMetrics.dynamic.power) * float32(aggregatedMetrics.cardsCount)
 	}
-	return score * powerWeight
+	return score * powerWeight / float32(len(gpuMetrics.GPUs))
 }
 
-func scoreAgainstEncoderUtilization(gpuMetrics *scraper.GPUMetrics) float32 {
+func scoreAgainstEncoderUtilization(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clusterAggregatedMetrics) float32 {
 	score := float32(0)
 	for _, gpu := range gpuMetrics.GPUs {
-		score += float32(100-gpu.EncoderUtilization) / 100
+		score += (1 - float32(gpu.EncoderUtilization)) / float32(aggregatedMetrics.cardsCount-aggregatedMetrics.dynamic.encoderUtilization) *
+			float32(aggregatedMetrics.cardsCount)
 	}
-	return score * encoderUtilizationWeight
+	return score * encoderUtilizationWeight / float32(len(gpuMetrics.GPUs))
 }
 
-func scoreAgainstDecoderUtilization(gpuMetrics *scraper.GPUMetrics) float32 {
+func scoreAgainstDecoderUtilization(gpuMetrics *scraper.GPUMetrics, aggregatedMetrics *clusterAggregatedMetrics) float32 {
 	score := float32(0)
 	for _, gpu := range gpuMetrics.GPUs {
-		score += float32(100-gpu.DecoderUtilization) / 100
+		score += (1 - float32(gpu.DecoderUtilization)) / float32(aggregatedMetrics.cardsCount-aggregatedMetrics.dynamic.decoderUtilization) *
+			float32(aggregatedMetrics.cardsCount)
 	}
-	return score * decoderUtilizationWeight
+	return score * decoderUtilizationWeight / float32(len(gpuMetrics.GPUs))
 }

@@ -5,15 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/genius/pkg/types"
-	"github.com/jiangxiaosheng/ObserverWard/"
-	"strconv"
-	"strings"
-	"time"
-
+	"github.com/observerward/pkg/scraper"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"k8s.io/klog/v2"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
@@ -74,8 +73,7 @@ func (m *Monitor) UpdateMetrics() (*types.GPUMetricsWithProm, error) {
 
 		for _, i := range numGPUValue {
 			id, err := strconv.Atoi(string(i))
-			allFilter, err := generateFilters([]string{k8sNodeNameLabel, idLabel}, []string{nodename, string(i)})
-			recordsStr, err := m.query(allFilter)
+			recordsStr, err := m.queryByLabel([]string{k8sNodeNameLabel, idLabel}, []string{nodename, string(i)})
 			if err != nil {
 				klog.Errorf(`querying prometheus records of kubernetes node %v and GPU with id "%v" error: `,
 					nodename, id, err)
@@ -84,8 +82,8 @@ func (m *Monitor) UpdateMetrics() (*types.GPUMetricsWithProm, error) {
 
 			records := strings.Split(recordsStr, "\n")
 			if len(records) != types.MetricsTypesCount {
-				klog.Warningf(`the number of metric types from prometheus query results is invalid, current
-				number is %v, but it should be %v`, len(records), types.MetricsTypesCount)
+				klog.Warningf(`the number of metric types from prometheus query results is invalid, current number is %v, but it should be %v`,
+					len(records), types.MetricsTypesCount)
 			}
 
 			gpuSnapshot := &scraper.MetricsSnapshotPerGPU{}
@@ -145,6 +143,8 @@ func (m *Monitor) queryLabelValues(labelname string, matchers []string) (model.L
 	return values, nil
 }
 
+// queryByLabel queries prometheus records which has label in labelnames and
+// corresponding label value in labelvalues.
 func (m *Monitor) queryByLabel(labelnames, labelvalues []string) (string, error) {
 	filters, err := generateFilters(labelnames, labelvalues)
 	if err != nil {

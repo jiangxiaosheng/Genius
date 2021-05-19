@@ -2,11 +2,11 @@ package schedule
 
 import (
 	"context"
-	"genius/pkg/monitor"
-	"genius/pkg/schedule/filter"
-	"genius/pkg/schedule/score"
-	"genius/pkg/schedule/sort"
-	"genius/pkg/types"
+	"github.com/genius/pkg/monitor"
+	"github.com/genius/pkg/schedule/filter"
+	"github.com/genius/pkg/schedule/score"
+	"github.com/genius/pkg/schedule/sort"
+	"github.com/genius/pkg/types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
@@ -124,10 +124,33 @@ func (g *Genius) Score(ctx context.Context, state *framework.CycleState, pod *v1
 		return 0, framework.NewStatus(framework.Error)
 	}
 
+	klog.Infof("the original score of pod %v with node %v is %v", pod.Name, nodeName, sc)
 	return int64(sc), nil
 }
 
 func (g *Genius) NormalizeScore(ctx context.Context, state *framework.CycleState, pod *v1.Pod, scores framework.NodeScoreList) *framework.Status {
+	max := int64(0)
+	min := int64(0)
+	for _, s := range scores {
+		if s.Score > max {
+			max = s.Score
+		}
+
+		if s.Score < min {
+			min = s.Score
+		}
+	}
+
+	if min == max {
+		min--
+	}
+
+	klog.V(3).Infof("normalizing scores, the maximum score is %v, the minimum score is %v", max, min)
+
+	for i, sc := range scores {
+		scores[i].Score = (sc.Score - min) * framework.MaxNodeScore / (max - min)
+		klog.V(3).Infof("the normalized score for pod %v with node %v is %v", pod.Name, sc.Name, sc.Score)
+	}
 
 	return framework.NewStatus(framework.Success)
 }

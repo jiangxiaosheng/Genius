@@ -1,7 +1,7 @@
 package score
 
 import (
-	"genius/pkg/types"
+	"github.com/genius/pkg/types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 )
