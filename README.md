@@ -31,9 +31,9 @@ kubectl apply -f deploy/deploy.yaml
 
 # Example
 
-Suppose you have deploy the Genius scheduler. You can just test its functions as below.
+Suppose you have deployed the Genius scheduler. You can just test its functions as below.
 
-First of all, this is a example file:
+First of all, this is an example file:
 
 ```yaml
 apiVersion: v1
